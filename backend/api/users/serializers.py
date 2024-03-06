@@ -1,7 +1,9 @@
 from django.contrib.auth import get_user_model
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from rest_framework import serializers, validators
+from rest_framework.exceptions import AuthenticationFailed
 
+from users.models import Subscription
 
 User = get_user_model()
 
@@ -46,4 +48,12 @@ class CustomUserSerializer(UserSerializer):
         fields = MetaAllUserFieldsMixin.Meta.fields + ('is_subscribed',)
 
     def get_is_subscribed(self, obj):
-        return not bool(obj) # TODO должен возвращать подписан он или нет
+        return Subscription.objects.filter(user=obj).exists()
+
+    @property
+    def data(self):
+        request = self.context['request']
+        if (request.path == '/api/users/me/'
+                and not request.user.is_authenticated):
+            raise AuthenticationFailed()
+        return super().data

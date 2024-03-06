@@ -1,0 +1,6 @@
+from django.contrib.auth import get_user_model
+from rest_framework import serializers, validators
+
+User = get_user_model()
+
+
