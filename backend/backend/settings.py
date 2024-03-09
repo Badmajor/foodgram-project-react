@@ -23,6 +23,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'django_filters',
     'rest_framework.authtoken',
     'djoser',
     'api.apps.ApiConfig',
@@ -124,3 +125,9 @@ DJOSER = {
         "user_list": ['rest_framework.permissions.IsAuthenticatedOrReadOnly'],
     }
 }
+
+TAGS_FOR_RECIPES = [
+    {'name': 'Завтрак', 'slug': 'breakfast', 'color': '#0000ff'},
+    {'name': 'Обед', 'slug': 'lunch', 'color': '#cd7f32'},
+    {'name': 'Завтрак', 'slug': 'breakfast', 'color': '#61db5c'},
+]
