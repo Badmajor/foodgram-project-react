@@ -23,8 +23,8 @@ class Recipe(models.Model):
     name = models.CharField(max_length=128)
     image = models.ImageField(
         upload_to='recipes/images/',
-        null=True,
-        default=None,
+        null=False,
+        blank=False
     )
     text = models.TextField()
     ingredients = models.ManyToManyField(
@@ -35,7 +35,10 @@ class Recipe(models.Model):
         Tag,
         through='TagRecipe'
     )
-    cooking_time = models.PositiveSmallIntegerField()
+    cooking_time = models.PositiveSmallIntegerField(
+        null=False,
+        blank=False,
+    )
     pub_date = models.DateTimeField(
         'Дата публикации',
         auto_now_add=True
@@ -44,6 +47,7 @@ class Recipe(models.Model):
         User,
         through='UsersRecipesFavorite'
     )
+
     def is_favorited(self, user):
         return user in self.users_who_like_it.all()
 
@@ -56,6 +60,12 @@ class IngredientRecipe(models.Model):
     recipe = models.ForeignKey(
         Recipe, on_delete=models.CASCADE,
     )
+
+    class Meta:
+        constraints = (
+            models.UniqueConstraint(fields=('ingredient', 'recipe'),
+                                    name='ingredient_recipe_unique'),
+        )
 
 
 class TagRecipe(models.Model):

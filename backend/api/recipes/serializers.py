@@ -1,9 +1,8 @@
 import base64
-from collections import OrderedDict
 
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
-from rest_framework import serializers
+from rest_framework import exceptions, serializers
 
 from recipes.models import Ingredient, IngredientRecipe, Recipe, Tag, TagRecipe
 
@@ -59,12 +58,16 @@ class IngredientRecipeSerializer(serializers.ModelSerializer):
 
 
 class RecipeSerializer(serializers.ModelSerializer):
-    image = Base64ImageField(required=False, allow_null=True)
+    image = Base64ImageField(required=True, allow_null=True)
     ingredients = serializers.ListField(
         child=serializers.DictField(),
-        write_only=True)
-    tags = TagSerializer(many=True)
+        write_only=True,
+        required=True,
+        allow_empty=False,
+    )
+    tags = TagSerializer(many=True, required=True, allow_empty=False)
     author = CustomUserSerializer(read_only=True)
+    cooking_time = serializers.IntegerField(allow_null=False)
 
     class Meta:
         model = Recipe
@@ -72,24 +75,14 @@ class RecipeSerializer(serializers.ModelSerializer):
         read_only_fields = ('tags', 'id')
 
     def create(self, validated_data):
-        print(validated_data)
         ingredients_data = validated_data.pop('ingredients')
         tags_data = validated_data.pop('tags')
+
         recipe = Recipe.objects.create(**validated_data)
-        for ingredient_data in ingredients_data:
-            ingredient = Ingredient.objects.get(pk=ingredient_data.get('id'))
-            amount = ingredient_data.get('amount')
-            IngredientRecipe.objects.create(
-                ingredient=ingredient,
-                recipe=recipe,
-                amount=amount,
-            )
-        for tag in tags_data:
-            tag = Tag.objects.get(pk=tag.get('id'))
-            TagRecipe.objects.create(
-                tag=tag,
-                recipe=recipe
-            )
+
+        self._add_ingredientrecipe(ingredients_data, recipe)
+        self._add_tagrecipe(tags_data, recipe)
+
         return recipe
 
     def to_representation(self, instance):
@@ -103,3 +96,62 @@ class RecipeSerializer(serializers.ModelSerializer):
             self.context['request'].user)
         representation['is_in_shopping_cart'] = False
         return representation
+
+    def update(self, instance, validated_data):
+        ingredients_data = validated_data.pop('ingredients')
+        self._add_ingredientrecipe(ingredients_data, instance)
+
+        tags_data = validated_data.pop('tags')
+        self._add_tagrecipe(tags_data, instance)
+
+        return super().update(instance, validated_data)
+
+    def validate_ingredients(self, ingredients):
+        if len(ingredients) != len(set(i.get('id') for i in ingredients)):
+            raise serializers.ValidationError('ingredients should not be repeated')
+        for ingredient_data in ingredients:
+            if not Ingredient.objects.filter(pk=ingredient_data.get('id')).exists():
+                raise serializers.ValidationError('Ingredient Does Not Exist')
+            if not ingredient_data.get('amount'):
+                raise serializers.ValidationError('amount most be positive')
+        return ingredients
+
+    def validate_tags(self, tags):
+        if len(tags) != len(set(i.get('id') for i in tags)):
+            raise serializers.ValidationError('tags should not be repeated')
+        for tag in tags:
+            if not Tag.objects.filter(pk=tag.get('id')):
+                raise serializers.ValidationError('Tag Does Not Exist')
+        return tags
+
+    def validate_cooking_time(self, attrs):
+        if attrs:
+            return attrs
+        raise serializers.ValidationError('cooking_time most be positive')
+
+    def _add_ingredientrecipe(self, ingredients: list, instance: Recipe) -> None:
+        created_ingredientrecipe = []
+        IngredientRecipe.objects.filter(recipe=instance).delete()
+        for ingredient_data in ingredients:
+            ingredient = Ingredient.objects.get(pk=ingredient_data.get('id'))
+            amount = ingredient_data.get('amount')
+            ingredient_recipe = IngredientRecipe(
+                ingredient=ingredient,
+                recipe=instance,
+                amount=amount,
+            )
+            created_ingredientrecipe.append(ingredient_recipe)
+        IngredientRecipe.objects.bulk_create(created_ingredientrecipe)
+
+    def _add_tagrecipe(self, tags: list, instance: Recipe) -> None:
+        created_tagrecipe = []
+        TagRecipe.objects.filter(recipe=instance).delete()
+        for tag in tags:
+            tag = Tag.objects.get(pk=tag.get('id'))
+            tag_recipe = TagRecipe(
+                tag=tag,
+                recipe=instance
+            )
+            created_tagrecipe.append(tag_recipe)
+        TagRecipe.objects.bulk_create(created_tagrecipe)
+
