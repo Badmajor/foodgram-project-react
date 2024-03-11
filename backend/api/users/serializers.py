@@ -5,6 +5,8 @@ from rest_framework.exceptions import AuthenticationFailed
 
 from users.models import Subscription
 
+from recipes.models import Recipe
+
 User = get_user_model()
 
 
@@ -50,10 +52,40 @@ class CustomUserSerializer(UserSerializer):
     def get_is_subscribed(self, obj):
         return Subscription.objects.filter(user=obj).exists()
 
-    @property
-    def data(self):
-        request = self.context['request']
-        if (request.path == '/api/users/me/'
-                and not request.user.is_authenticated):
-            raise AuthenticationFailed()
-        return super().data
+
+class UserSerializerWithRecipesList(CustomUserSerializer):
+    recipes = serializers.SerializerMethodField()
+    recipes_count = serializers.SerializerMethodField()
+
+    class Meta(CustomUserSerializer.Meta):
+        fields = CustomUserSerializer.Meta.fields + ('recipes', 'recipes_count')
+
+    def get_recipes_count(self, user):
+        return Recipe.objects.filter(author=user).count()
+
+    def get_recipes(self, user):
+        from api.recipes.serializers import RecipeListForUserSerializer
+
+        limit = self._get_limit_recipe()
+        recipes = user.recipes.all()
+        if limit:
+            recipes = recipes[:limit]
+        serializer = RecipeListForUserSerializer(recipes, many=True)
+        return serializer.data
+
+    def _get_limit_recipe(self):
+        if recipes_limit := self.context.get('recipes_limit', False):
+            pass
+        return int(recipes_limit)
+
+
+class SubscriptionSerializer(serializers.ModelSerializer):
+    user = UserSerializerWithRecipesList()
+
+    class Meta:
+        model = Subscription
+        fields = ('user',)
+
+    def to_representation(self, instance):
+        return super().to_representation(instance).get('user')
+

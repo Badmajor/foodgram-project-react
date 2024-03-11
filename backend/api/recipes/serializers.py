@@ -72,7 +72,7 @@ class RecipeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = ('id', 'ingredients', 'tags', 'image', 'name', 'text', 'cooking_time', 'author',)
-        read_only_fields = ('tags', 'id')
+        read_only_fields = ('id',)
 
     def create(self, validated_data):
         ingredients_data = validated_data.pop('ingredients')
@@ -92,8 +92,9 @@ class RecipeSerializer(serializers.ModelSerializer):
             ingredient = IngredientRecipeSerializer(ingredient_obj)
             ingredients.append(ingredient.to_representation(ingredient_obj))
         representation['ingredients'] = ingredients
-        representation['is_favorited'] = instance.is_favorited(
-            self.context['request'].user)
+        if self.context.get('request', False):
+            representation['is_favorited'] = instance.is_favorited(
+                self.context['request'].user)
         representation['is_in_shopping_cart'] = False
         return representation
 
@@ -154,4 +155,10 @@ class RecipeSerializer(serializers.ModelSerializer):
             )
             created_tagrecipe.append(tag_recipe)
         TagRecipe.objects.bulk_create(created_tagrecipe)
+
+
+class RecipeListForUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Recipe
+        fields = ('id', 'name', 'image', 'cooking_time')
 
