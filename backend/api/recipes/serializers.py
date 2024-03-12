@@ -86,6 +86,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         return recipe
 
     def to_representation(self, instance):
+        user = self.context['request'].user
         representation = super().to_representation(instance)
         ingredients = []
         for ingredient_obj in IngredientRecipe.objects.filter(recipe=instance):
@@ -93,9 +94,9 @@ class RecipeSerializer(serializers.ModelSerializer):
             ingredients.append(ingredient.to_representation(ingredient_obj))
         representation['ingredients'] = ingredients
         if self.context.get('request', False):
-            representation['is_favorited'] = instance.is_favorited(
-                self.context['request'].user)
-        representation['is_in_shopping_cart'] = False
+            representation['is_favorited'] = user in instance.is_favorited.all()
+
+        representation['is_in_shopping_cart'] = user in instance.is_in_shopping_cart.all()
         return representation
 
     def update(self, instance, validated_data):

@@ -43,13 +43,17 @@ class Recipe(models.Model):
         'Дата публикации',
         auto_now_add=True
     )
-    users_who_like_it = models.ManyToManyField(
+    is_favorited = models.ManyToManyField(
         User,
-        through='UsersRecipesFavorite'
+        through='UsersRecipesFavorite',
+        related_name='users_who_like_it'
     )
 
-    def is_favorited(self, user):
-        return user in self.users_who_like_it.all()
+    is_in_shopping_cart = models.ManyToManyField(
+        User,
+        through='ShoppingCart',
+        related_name='users_shopping_cart'
+    )
 
 
 class IngredientRecipe(models.Model):
@@ -80,3 +84,14 @@ class TagRecipe(models.Model):
 class UsersRecipesFavorite(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
+
+
+class ShoppingCart(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+    )
