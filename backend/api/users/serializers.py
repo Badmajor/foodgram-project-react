@@ -50,7 +50,7 @@ class CustomUserSerializer(UserSerializer):
         fields = MetaAllUserFieldsMixin.Meta.fields + ('is_subscribed',)
 
     def get_is_subscribed(self, obj):
-        return Subscription.objects.filter(user=obj).exists()
+        return Subscription.objects.filter(subscriber=obj).exists()
 
 
 class UserSerializerWithRecipesList(CustomUserSerializer):
@@ -74,8 +74,7 @@ class UserSerializerWithRecipesList(CustomUserSerializer):
         return serializer.data
 
     def _get_limit_recipe(self):
-        if recipes_limit := self.context.get('recipes_limit', False):
-            pass
+        recipes_limit = self.context.get('recipes_limit', False)
         return int(recipes_limit)
 
 

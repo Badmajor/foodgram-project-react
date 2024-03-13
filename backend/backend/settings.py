@@ -131,3 +131,6 @@ TAGS_FOR_RECIPES = [
     {'name': 'Обед', 'slug': 'lunch', 'color': '#cd7f32'},
     {'name': 'Завтрак', 'slug': 'breakfast', 'color': '#61db5c'},
 ]
+
+SIZE_LONG_STRING = 128
+SIZE_SHORT_STRING = 16

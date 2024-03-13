@@ -2,10 +2,9 @@ import base64
 
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
-from rest_framework import exceptions, serializers
+from rest_framework import serializers
 
 from recipes.models import Ingredient, IngredientRecipe, Recipe, Tag, TagRecipe
-
 from api.users.serializers import CustomUserSerializer
 
 User = get_user_model()
@@ -46,6 +45,7 @@ class IngredientSerializer(serializers.ModelSerializer):
 class IngredientRecipeSerializer(serializers.ModelSerializer):
     measurement_unit = serializers.SerializerMethodField()
     name = serializers.SerializerMethodField()
+
     class Meta:
         model = IngredientRecipe
         fields = ('id', 'name', 'measurement_unit', 'amount')
@@ -77,9 +77,7 @@ class RecipeSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         ingredients_data = validated_data.pop('ingredients')
         tags_data = validated_data.pop('tags')
-
         recipe = Recipe.objects.create(**validated_data)
-
         self._add_ingredientrecipe(ingredients_data, recipe)
         self._add_tagrecipe(tags_data, recipe)
 
@@ -92,18 +90,17 @@ class RecipeSerializer(serializers.ModelSerializer):
         for ingredient_obj in IngredientRecipe.objects.filter(recipe=instance):
             ingredient = IngredientRecipeSerializer(ingredient_obj)
             ingredients.append(ingredient.to_representation(ingredient_obj))
-        representation['ingredients'] = ingredients
-        if self.context.get('request', False):
-            representation['is_favorited'] = user in instance.is_favorited.all()
 
+        representation['ingredients'] = ingredients
+        representation['is_favorited'] = user in instance.is_favorited.all()
         representation['is_in_shopping_cart'] = user in instance.is_in_shopping_cart.all()
         return representation
 
     def update(self, instance, validated_data):
         ingredients_data = validated_data.pop('ingredients')
-        self._add_ingredientrecipe(ingredients_data, instance)
-
         tags_data = validated_data.pop('tags')
+        
+        self._add_ingredientrecipe(ingredients_data, instance)
         self._add_tagrecipe(tags_data, instance)
 
         return super().update(instance, validated_data)

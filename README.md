@@ -2,8 +2,8 @@
 
 ```bash
 # Команда add_ingredients_into_db принимает 1 позиционный аргумент.
-# Абсолютный путь до файла с ингредиентами
-python manage.py add_ingredients_into_db [абсолютный путь к файлу]
+# путь в проекте до файла с ингредиентами
+python manage.py add_ingredients_into_db [путь к файлу]
 ```
 
 ## Содание тегов 

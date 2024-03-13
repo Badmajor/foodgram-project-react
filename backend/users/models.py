@@ -24,3 +24,4 @@ class Subscription(models.Model):
                 name='user_following_unique'
             ),
         )
+

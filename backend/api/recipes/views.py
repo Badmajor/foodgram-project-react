@@ -2,32 +2,30 @@ import io
 
 from django.db.models import F, Sum
 from django_filters import rest_framework as filters
-from django.http import FileResponse, response
-from django.shortcuts import get_object_or_404
+from django.http import FileResponse
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
-from rest_framework import mixins, viewsets, permissions, status
+from rest_framework import mixins, viewsets, permissions, status, exceptions
 from rest_framework.decorators import action
 from rest_framework.response import Response
+
 from api.recipes.permissions import OwnerAndAdminChange
 from api.recipes.serializers import (IngredientSerializer,
                                      RecipeListForUserSerializer,
                                      RecipeSerializer,
-                                     TagSerializer,)
+                                     TagSerializer, )
 from recipes.models import (Ingredient,
                             IngredientRecipe,
                             Recipe,
                             ShoppingCart,
                             Tag,
-                            UsersRecipesFavorite,)
+                            UsersRecipesFavorite, )
 
-def create_pdf(data_list):
 
+def create_pdf(data_list: list[str]):
     buffer = io.BytesIO()
     file = canvas.Canvas(buffer, pagesize=letter)
-
     y = 750
-
     for row in data_list:
         file.drawString(100, 750, str(row))
         y -= 30
@@ -35,6 +33,15 @@ def create_pdf(data_list):
     pdf_file = buffer.getvalue()
     buffer.close()
     return pdf_file
+
+
+def _get_obj_or_400(klass, **kwargs):
+    if hasattr(klass, "_default_manager"):
+        queryset = klass._default_manager.all()
+    try:
+        return queryset.get(**kwargs)
+    except Exception:
+        raise exceptions.ValidationError(detail=f'{klass.__name__} not exist')
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -55,26 +62,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
             permission_classes=(permissions.IsAuthenticated,),
             detail=True)
     def shopping_cart(self, request, *args, **kwargs):
-        user = request.user
-        if request.method == 'POST':
-            try:
-                recipe = self.get_object()
-            except response.Http404:
-                return Response('Recipe is not exist', status=status.HTTP_400_BAD_REQUEST)
-        else:
-            recipe = self.get_object()
-        serializer = RecipeListForUserSerializer(recipe)
-        if request.method == 'POST':
-            _, created = ShoppingCart.objects.get_or_create(user=user, recipe=recipe)
-            if created:
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            return Response('Recipe already in your shopping cart', status=status.HTTP_400_BAD_REQUEST)
-        try:
-            cart = get_object_or_404(ShoppingCart, user=user, recipe=recipe)
-        except response.Http404:
-            return Response('Recipe is not in ShoppingCart', status=status.HTTP_400_BAD_REQUEST)
-        cart.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return self.__base_action_method(ShoppingCart, request, *args, **kwargs)
+
 
     @action(["get"],
             permission_classes=(permissions.IsAuthenticated,),
@@ -95,27 +84,31 @@ class RecipeViewSet(viewsets.ModelViewSet):
             permission_classes=(permissions.IsAuthenticated,),
             detail=True)
     def favorite(self, request, *args, **kwargs):
-        if request.method == 'POST':
-            try:
-                recipe = self.get_object()
-            except response.Http404:
-                return Response('Recipe is not exist', status=status.HTTP_400_BAD_REQUEST)
-        else:
+        return self.__base_action_method(UsersRecipesFavorite, request, *args, **kwargs)
+
+    def _get_recipe_or_400(self):
+        try:
             recipe = self.get_object()
+            return recipe
+        except Exception:
+            raise exceptions.ValidationError(detail='Recipe not exist')
+
+    def __base_action_method(self, klass, request, *args, **kwargs) -> Response:
+        """Return Response depending on the state of the objects."""
+        method = request.method
         user = request.user
-        serializer = RecipeListForUserSerializer(recipe)
-        if request.method == 'POST':
-            _, created = UsersRecipesFavorite.objects.get_or_create(user=user, recipe=recipe)
+        if method == 'POST':
+            recipe = self._get_recipe_or_400()
+            serializer = RecipeListForUserSerializer(recipe)
+            _, created = klass.objects.get_or_create(user=user, recipe=recipe)
             if created:
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
-            return Response('Recipe already in your favorite list', status=status.HTTP_400_BAD_REQUEST)
-        try:
-            favorite = get_object_or_404(UsersRecipesFavorite, user=user, recipe=recipe)
-        except response.Http404:
-            return Response('Recipe is not in ShoppingCart', status=status.HTTP_400_BAD_REQUEST)
-        favorite.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
+            return Response('Recipe already in list', status=status.HTTP_400_BAD_REQUEST)
+        if method == 'DELETE':
+            recipe = self.get_object()
+            favorite = _get_obj_or_400(klass, user=user, recipe=recipe)
+            favorite.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class IngredientViewSet(mixins.RetrieveModelMixin,
@@ -134,5 +127,3 @@ class TagViewSet(mixins.RetrieveModelMixin,
     queryset = Tag.objects.order_by('id')
     serializer_class = TagSerializer
     pagination_class = None
-
-
