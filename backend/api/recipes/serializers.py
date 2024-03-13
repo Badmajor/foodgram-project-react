@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from rest_framework import serializers
 
-from recipes.models import Ingredient, IngredientRecipe, Recipe, Tag, TagRecipe
+from recipes.models import Ingredient, IngredientRecipe, Recipe, Tag
 from api.users.serializers import CustomUserSerializer
 
 User = get_user_model()
@@ -143,17 +143,10 @@ class RecipeSerializer(serializers.ModelSerializer):
         IngredientRecipe.objects.bulk_create(created_ingredientrecipe)
 
     def _add_tagrecipe(self, tags: list, instance: Recipe) -> None:
-        created_tagrecipe = []
-        TagRecipe.objects.filter(recipe=instance).delete()
+        instance.tags.clear()
         for tag in tags:
             tag = Tag.objects.get(pk=tag.get('id'))
-            tag_recipe = TagRecipe(
-                tag=tag,
-                recipe=instance
-            )
-            created_tagrecipe.append(tag_recipe)
-        TagRecipe.objects.bulk_create(created_tagrecipe)
-
+            instance.tags.add(tag)
 
 class RecipeListForUserSerializer(serializers.ModelSerializer):
     class Meta:

@@ -11,11 +11,8 @@ from recipes.models import Ingredient
 class Command(BaseCommand):
     help = 'Add data into db from JSON of CSV files'
 
-    def add_arguments(self, parser):
-        parser.add_argument('file_path', type=str, help='Path to .json or .csv file')
-
     def handle(self, *args, **options):
-        path = os.path.join(options['file_path'])
+        path = os.path.join(settings.BASE_DIR, 'data/ingredients.json')
         with open(path, 'r', encoding='utf-8') as file:
             file_extension = file.name.split('.')[-1]
             ingredients = []

@@ -67,7 +67,7 @@ class UserSerializerWithRecipesList(CustomUserSerializer):
         from api.recipes.serializers import RecipeListForUserSerializer
 
         limit = self._get_limit_recipe()
-        recipes = user.recipes.all()
+        recipes = user.recipe.all()
         if limit:
             recipes = recipes[:limit]
         serializer = RecipeListForUserSerializer(recipes, many=True)

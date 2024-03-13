@@ -49,7 +49,7 @@ class Recipe(NameFieldStrMethodBaseModel):
         verbose_name='Автор рецепта',
     )
     image = models.ImageField(
-        upload_to='recipes/images/',
+        upload_to='images/',
         null=False,
         blank=False,
         verbose_name='Изображение',
@@ -62,7 +62,6 @@ class Recipe(NameFieldStrMethodBaseModel):
     )
     tags = models.ManyToManyField(
         Tag,
-        through='TagRecipe',
         verbose_name='Тэги',
     )
     cooking_time = models.PositiveSmallIntegerField(
@@ -77,17 +76,16 @@ class Recipe(NameFieldStrMethodBaseModel):
     is_favorited = models.ManyToManyField(
         User,
         through='UsersRecipesFavorite',
-        related_name='favorite recipes',
+        related_name='favorite_recipes',
         verbose_name='Кому понравился рецепт'
     )
 
     is_in_shopping_cart = models.ManyToManyField(
         User,
         through='ShoppingCart',
-        related_name='buy it',
+        related_name='buy_it',
         verbose_name='Кто добавил в список покупок',
     )
-
 
 
 class IngredientRecipe(models.Model):
@@ -108,24 +106,11 @@ class IngredientRecipe(models.Model):
         )
     verbose_name = 'Ингредиент'
     verbose_name_plural = 'ингредиенты'
+    default_related_name = 'ingredient_recipe'
 
 
-class TagRecipe(models.Model):
-    tag = models.ForeignKey(
-        Tag, on_delete=models.CASCADE,
-        verbose_name='Тэг',
-    )
-    recipe = models.ForeignKey(
-        Recipe, on_delete=models.CASCADE,
-        verbose_name='Рецепт',
-    )
 
-    class Meta:
-        verbose_name = 'Тэг'
-        verbose_name_plural = 'тэги'
-
-
-class ShoppingCart(models.Model):
+class AbstractUserRecipeModel(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -137,11 +122,26 @@ class ShoppingCart(models.Model):
     )
 
     class Meta:
+        abstract = True
+
+
+class ShoppingCart(AbstractUserRecipeModel):
+
+    class Meta:
         verbose_name = 'Пользователь хочет купить'
         verbose_name_plural = verbose_name
+        constraints = (
+            models.UniqueConstraint(fields=('user', 'recipe'),
+                                    name='user_recipe_shopping_cart_unique'),
+        )
 
 
-class UsersRecipesFavorite(ShoppingCart):
+class UsersRecipesFavorite(AbstractUserRecipeModel):
+
     class Meta:
         verbose_name = 'Любимый рецепт пользователя'
         verbose_name_plural = 'любимые рецепты пользователя'
+        constraints = (
+            models.UniqueConstraint(fields=('user', 'recipe'),
+                                    name='user_recipe_favorite_unique'),
+        )
