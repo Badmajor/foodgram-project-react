@@ -148,6 +148,7 @@ class RecipeSerializer(serializers.ModelSerializer):
             tag = Tag.objects.get(pk=tag.get('id'))
             instance.tags.add(tag)
 
+
 class RecipeListForUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe

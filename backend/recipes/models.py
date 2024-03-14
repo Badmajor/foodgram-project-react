@@ -42,6 +42,7 @@ class Recipe(NameFieldStrMethodBaseModel):
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
         default_related_name = 'recipe'
+        ordering = ('-pub_date',)
 
     author = models.ForeignKey(
         User,

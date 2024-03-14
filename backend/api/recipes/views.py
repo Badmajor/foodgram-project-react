@@ -21,6 +21,8 @@ from recipes.models import (Ingredient,
                             Tag,
                             UsersRecipesFavorite, )
 
+from .filters import RecipeFilter
+
 
 def create_pdf(data_list: list[str]):
     buffer = io.BytesIO()
@@ -45,10 +47,10 @@ def _get_obj_or_400(klass, **kwargs):
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
-    queryset = Recipe.objects.order_by('-pub_date')
+    queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
     filter_backends = (filters.DjangoFilterBackend,)
-    filterset_fields = ('author', 'tags__slug', 'is_in_shopping_cart', 'is_favorited')
+    filterset_class = RecipeFilter
     permission_classes = (OwnerAndAdminChange,)
 
     def perform_create(self, serializer):
