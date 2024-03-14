@@ -1,25 +1,20 @@
 import io
 
 from django.db.models import F, Sum
-from django_filters import rest_framework as filters
 from django.http import FileResponse
+from django_filters import rest_framework as filters
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
-from rest_framework import mixins, viewsets, permissions, status, exceptions
+from rest_framework import exceptions, mixins, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from api.recipes.permissions import OwnerAndAdminChange
 from api.recipes.serializers import (IngredientSerializer,
                                      RecipeListForUserSerializer,
-                                     RecipeSerializer,
-                                     TagSerializer, )
-from recipes.models import (Ingredient,
-                            IngredientRecipe,
-                            Recipe,
-                            ShoppingCart,
-                            Tag,
-                            UsersRecipesFavorite, )
+                                     RecipeSerializer, TagSerializer)
+from recipes.models import (Ingredient, Recipe, ShoppingCart, Tag,
+                            UsersRecipesFavorite)
 
 from .filters import RecipeFilter
 
@@ -64,8 +59,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
             permission_classes=(permissions.IsAuthenticated,),
             detail=True)
     def shopping_cart(self, request, *args, **kwargs):
-        return self.__base_action_method(ShoppingCart, request, *args, **kwargs)
-
+        return self.__base_action_method(
+            ShoppingCart, request, *args, **kwargs
+        )
 
     @action(["get"],
             permission_classes=(permissions.IsAuthenticated,),
@@ -86,7 +82,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
             permission_classes=(permissions.IsAuthenticated,),
             detail=True)
     def favorite(self, request, *args, **kwargs):
-        return self.__base_action_method(UsersRecipesFavorite, request, *args, **kwargs)
+        return self.__base_action_method(
+            UsersRecipesFavorite, request, *args, **kwargs)
 
     def _get_recipe_or_400(self):
         try:
@@ -95,7 +92,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
         except Exception:
             raise exceptions.ValidationError(detail='Recipe not exist')
 
-    def __base_action_method(self, klass, request, *args, **kwargs) -> Response:
+    def __base_action_method(
+            self, klass, request, *args, **kwargs
+    ) -> Response:
         """Return Response depending on the state of the objects."""
         method = request.method
         user = request.user
@@ -104,8 +103,14 @@ class RecipeViewSet(viewsets.ModelViewSet):
             serializer = RecipeListForUserSerializer(recipe)
             _, created = klass.objects.get_or_create(user=user, recipe=recipe)
             if created:
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            return Response('Recipe already in list', status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    serializer.data,
+                    status=status.HTTP_201_CREATED
+                )
+            return Response(
+                'Recipe already in list',
+                status=status.HTTP_400_BAD_REQUEST
+            )
         if method == 'DELETE':
             recipe = self.get_object()
             print('CheckPoint123', recipe.author, user, klass)

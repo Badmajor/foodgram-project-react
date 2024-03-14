@@ -4,8 +4,8 @@ from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from rest_framework import serializers
 
-from recipes.models import Ingredient, IngredientRecipe, Recipe, Tag
 from api.users.serializers import CustomUserSerializer
+from recipes.models import Ingredient, IngredientRecipe, Recipe, Tag
 
 User = get_user_model()
 
@@ -71,7 +71,9 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Recipe
-        fields = ('id', 'ingredients', 'tags', 'image', 'name', 'text', 'cooking_time', 'author',)
+        fields = ('id', 'ingredients', 'tags',
+                  'image', 'name', 'text',
+                  'cooking_time', 'author',)
         read_only_fields = ('id',)
 
     def create(self, validated_data):
@@ -93,13 +95,13 @@ class RecipeSerializer(serializers.ModelSerializer):
 
         representation['ingredients'] = ingredients
         representation['is_favorited'] = user in instance.is_favorited.all()
-        representation['is_in_shopping_cart'] = user in instance.is_in_shopping_cart.all()
+        representation['is_in_shopping_cart'] = (
+                user in instance.is_in_shopping_cart.all())
         return representation
 
     def update(self, instance, validated_data):
         ingredients_data = validated_data.pop('ingredients')
         tags_data = validated_data.pop('tags')
-        
         self._add_ingredientrecipe(ingredients_data, instance)
         self._add_tagrecipe(tags_data, instance)
 
@@ -107,9 +109,11 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     def validate_ingredients(self, ingredients):
         if len(ingredients) != len(set(i.get('id') for i in ingredients)):
-            raise serializers.ValidationError('ingredients should not be repeated')
+            raise serializers.ValidationError(
+                'ingredients should not be repeated')
         for ingredient_data in ingredients:
-            if not Ingredient.objects.filter(pk=ingredient_data.get('id')).exists():
+            if not Ingredient.objects.filter(
+                    pk=ingredient_data.get('id')).exists():
                 raise serializers.ValidationError('Ingredient Does Not Exist')
             if not ingredient_data.get('amount'):
                 raise serializers.ValidationError('amount most be positive')
@@ -128,7 +132,9 @@ class RecipeSerializer(serializers.ModelSerializer):
             return attrs
         raise serializers.ValidationError('cooking_time most be positive')
 
-    def _add_ingredientrecipe(self, ingredients: list, instance: Recipe) -> None:
+    def _add_ingredientrecipe(
+            self, ingredients: list, instance: Recipe
+    ) -> None:
         created_ingredientrecipe = []
         IngredientRecipe.objects.filter(recipe=instance).delete()
         for ingredient_data in ingredients:
@@ -153,4 +159,3 @@ class RecipeListForUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = ('id', 'name', 'image', 'cooking_time')
-

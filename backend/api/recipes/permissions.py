@@ -1,4 +1,4 @@
-from rest_framework.permissions import IsAuthenticatedOrReadOnly, SAFE_METHODS
+from rest_framework.permissions import SAFE_METHODS, IsAuthenticatedOrReadOnly
 
 
 class OwnerAndAdminChange(IsAuthenticatedOrReadOnly):
@@ -7,4 +7,3 @@ class OwnerAndAdminChange(IsAuthenticatedOrReadOnly):
         return (request.method in SAFE_METHODS
                 or request.user == obj.author
                 or request.user.is_staff)
-

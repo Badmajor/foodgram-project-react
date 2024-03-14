@@ -1,11 +1,9 @@
 from django.contrib.auth import get_user_model
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from rest_framework import serializers, validators
-from rest_framework.exceptions import AuthenticationFailed
-
-from users.models import Subscription
 
 from recipes.models import Recipe
+from users.models import Subscription
 
 User = get_user_model()
 
@@ -58,7 +56,8 @@ class UserSerializerWithRecipesList(CustomUserSerializer):
     recipes_count = serializers.SerializerMethodField()
 
     class Meta(CustomUserSerializer.Meta):
-        fields = CustomUserSerializer.Meta.fields + ('recipes', 'recipes_count')
+        fields = (CustomUserSerializer.Meta.fields
+                  + ('recipes', 'recipes_count'))
 
     def get_recipes_count(self, user):
         return Recipe.objects.filter(author=user).count()
@@ -87,4 +86,3 @@ class SubscriptionSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         return super().to_representation(instance).get('user')
-

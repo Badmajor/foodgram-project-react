@@ -1,10 +1,12 @@
-from django.urls import path, include
+from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
 from .views import SubscriptionViewSet, UserViewSetWithActions
 
 router = DefaultRouter()
-router.register(r'users/subscriptions', SubscriptionViewSet, basename='subscriptions')
+router.register(r'users/subscriptions',
+                SubscriptionViewSet,
+                basename='subscriptions')
 router.register('users', UserViewSetWithActions, basename='users')
 
 urlpatterns = [

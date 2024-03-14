@@ -1,8 +1,8 @@
 from djoser.views import UserViewSet
+from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework import mixins, viewsets, status
 
 from api.users.serializers import UserSerializerWithRecipesList
 from users.models import Subscription
@@ -39,17 +39,24 @@ class UserViewSetWithActions(UserViewSet):
     def subscribe(self, request, *args, **kwargs):
         user = self.get_object()
         subscriber = request.user
-        sub_exist = Subscription.objects.filter(user=user, subscriber=subscriber).exists()
+        sub_exist = Subscription.objects.filter(
+            user=user, subscriber=subscriber
+        ).exists()
         if user == subscriber:
-            return Response('It is not possible to subscribe to yourself', status=status.HTTP_400_BAD_REQUEST)
+            return Response('It is not possible to subscribe to yourself',
+                            status=status.HTTP_400_BAD_REQUEST)
         if request.method == 'POST':
             if sub_exist:
-                return Response('Subscription exist', status=status.HTTP_400_BAD_REQUEST)
+                return Response('Subscription exist',
+                                status=status.HTTP_400_BAD_REQUEST)
             Subscription.objects.create(user=user, subscriber=subscriber)
-            serializer = UserSerializerWithRecipesList(user, context=request.query_params)
+            serializer = UserSerializerWithRecipesList(
+                user, context=request.query_params
+            )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         if request.method == 'DELETE':
             if not sub_exist:
-                return Response('Subscription not exist', status=status.HTTP_400_BAD_REQUEST)
+                return Response('Subscription not exist',
+                                status=status.HTTP_400_BAD_REQUEST)
             Subscription.objects.get(user=user, subscriber=subscriber).delete()
             return Response(status=status.HTTP_204_NO_CONTENT)

@@ -19,7 +19,8 @@ class Command(BaseCommand):
             if file_extension == 'csv':
                 file_reader = csv.reader(file)
                 for row in file_reader:
-                    ingredient = Ingredient(name=row[0], measurement_unit=row[1])
+                    ingredient = Ingredient(
+                        name=row[0], measurement_unit=row[1])
                     ingredients.append(ingredient)
             elif file_extension == 'json':
                 file_reader = json.load(file)
@@ -27,8 +28,3 @@ class Command(BaseCommand):
                     ingredient = Ingredient(**row)
                     ingredients.append(ingredient)
             Ingredient.objects.bulk_create(ingredients)
-
-
-
-
-

@@ -15,7 +15,9 @@ class Subscription(models.Model):
 
     def clean(self):
         if self.user == self.subscriber:
-            raise ValidationError('It is not possible to subscribe to yourself')
+            raise ValidationError(
+                'It is not possible to subscribe to yourself'
+            )
 
     class Meta:
         constraints = (
@@ -24,4 +26,3 @@ class Subscription(models.Model):
                 name='user_following_unique'
             ),
         )
-

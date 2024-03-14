@@ -3,6 +3,7 @@ import os
 
 def create_environment_variable():
     import logging
+
     from dotenv import load_dotenv
 
     logging.basicConfig(level=logging.INFO)

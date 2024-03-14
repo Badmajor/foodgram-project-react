@@ -11,13 +11,13 @@ class RecipeAdmin(admin.ModelAdmin):
     )
     list_filter = ('name', 'author', 'tags',)
 
-
-
     def display_ingredients(self, obj):
         ingredients_list = []
         for ingr in obj.ingredientrecipe_set.all():
-            string = f'{ingr.ingredient.name} - {ingr.amount} {ingr.ingredient.measurement_unit}'
-            ingredients_list.append(string)
+            ingredients_list.append(
+                f'{ingr.ingredient.name} - '
+                f'{ingr.amount} {ingr.ingredient.measurement_unit}'
+            )
         return ', '.join(ingredients_list)
 
     def display_tags(self, obj):

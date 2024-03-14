@@ -19,7 +19,8 @@ class NameFieldStrMethodBaseModel(models.Model):
 
 
 class Ingredient(NameFieldStrMethodBaseModel):
-    measurement_unit = models.CharField('Единица измерения', max_length=SHORT_STR)
+    measurement_unit = models.CharField(
+        'Единица измерения', max_length=SHORT_STR)
 
     class Meta:
         verbose_name = 'Ингредиент'
@@ -108,7 +109,6 @@ class IngredientRecipe(models.Model):
     verbose_name = 'Ингредиент'
     verbose_name_plural = 'ингредиенты'
     default_related_name = 'ingredient_recipe'
-
 
 
 class AbstractUserRecipeModel(models.Model):
