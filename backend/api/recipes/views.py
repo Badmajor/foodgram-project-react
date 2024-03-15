@@ -3,7 +3,7 @@ import io
 from django.db.models import F, Sum
 from django.http import FileResponse
 from django_filters import rest_framework as filters
-from reportlab.lib.pagesizes import letter
+from reportlab.pdfbase import pdfmetrics, ttfonts
 from reportlab.pdfgen import canvas
 from rest_framework import exceptions, mixins, permissions, status, viewsets
 from rest_framework.decorators import action
@@ -17,19 +17,28 @@ from recipes.models import (Ingredient, Recipe, ShoppingCart, Tag,
                             UsersRecipesFavorite)
 
 from .filters import RecipeFilter
+from .paginators import RecipePaginator
 
 
 def create_pdf(data_list: list[str]):
     buffer = io.BytesIO()
-    file = canvas.Canvas(buffer, pagesize=letter)
+    file = canvas.Canvas(buffer)
+    pdfmetrics.registerFont(
+        ttfonts.TTFont(
+            'DejaVu',
+            'fonts/DejaVuSerifCondensed.ttf',
+        )
+    )
+    file.setFont("DejaVu", 15)
     y = 750
-    for row in data_list:
-        file.drawString(100, 750, str(row))
+    for item in data_list:
+        row = f'- {item["name"]} - {item["amount"]} {item["unit"]}'
+        file.drawString(100, y, row)
         y -= 30
+    file.showPage()
     file.save()
-    pdf_file = buffer.getvalue()
-    buffer.close()
-    return pdf_file
+    buffer.seek(0)
+    return buffer
 
 
 def _get_obj_or_400(klass, **kwargs):
@@ -47,6 +56,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = RecipeFilter
     permission_classes = (OwnerAndAdminChange,)
+    pagination_class = RecipePaginator
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
@@ -70,13 +80,17 @@ class RecipeViewSet(viewsets.ModelViewSet):
         ingredients = ShoppingCart.objects.filter(
             user=request.user
         ).values(
-            name=F('recipe__ingredients__name')
+            name=F('recipe__ingredients__name'),
+            unit=F('recipe__ingredients__measurement_unit')
         ).annotate(amount=Sum(
             'recipe__ingredients__ingredientrecipe__amount'))
         file = create_pdf(ingredients)
-        return FileResponse(filename=file,
-                            status=status.HTTP_200_OK,
-                            content_type='application/pdf')
+        return FileResponse(
+            file,
+            filename='shopping_cart.pdf',
+            status=status.HTTP_200_OK,
+            as_attachment=True,)
+
 
     @action(['post', 'delete'],
             permission_classes=(permissions.IsAuthenticated,),
