@@ -45,6 +45,7 @@ class IngredientSerializer(serializers.ModelSerializer):
 class IngredientRecipeSerializer(serializers.ModelSerializer):
     measurement_unit = serializers.SerializerMethodField()
     name = serializers.SerializerMethodField()
+    id = serializers.SerializerMethodField(source='id_ingredient')
 
     class Meta:
         model = IngredientRecipe
@@ -56,9 +57,13 @@ class IngredientRecipeSerializer(serializers.ModelSerializer):
     def get_name(self, obj):
         return obj.ingredient.name
 
+    def get_id(self, obj):
+        return obj.ingredient.id
+
 
 class RecipeSerializer(serializers.ModelSerializer):
     image = Base64ImageField(required=True, allow_null=True)
+
     ingredients = serializers.ListField(
         child=serializers.DictField(),
         write_only=True,
@@ -82,7 +87,6 @@ class RecipeSerializer(serializers.ModelSerializer):
         recipe = Recipe.objects.create(**validated_data)
         self._add_ingredientrecipe(ingredients_data, recipe)
         self._add_tagrecipe(tags_data, recipe)
-
         return recipe
 
     def to_representation(self, instance):
@@ -92,7 +96,6 @@ class RecipeSerializer(serializers.ModelSerializer):
         for ingredient_obj in IngredientRecipe.objects.filter(recipe=instance):
             ingredient = IngredientRecipeSerializer(ingredient_obj)
             ingredients.append(ingredient.to_representation(ingredient_obj))
-
         representation['ingredients'] = ingredients
         representation['is_favorited'] = user in instance.is_favorited.all()
         representation['is_in_shopping_cart'] = (
@@ -104,7 +107,6 @@ class RecipeSerializer(serializers.ModelSerializer):
         tags_data = validated_data.pop('tags')
         self._add_ingredientrecipe(ingredients_data, instance)
         self._add_tagrecipe(tags_data, instance)
-
         return super().update(instance, validated_data)
 
     def validate_ingredients(self, ingredients):

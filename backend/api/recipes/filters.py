@@ -8,7 +8,8 @@ class RecipeFilter(django_filters.FilterSet):
     tags = django_filters.CharFilter(field_name='tags__slug')
     is_in_shopping_cart = django_filters.NumberFilter(
         method='filter_user_in_queryset')
-    is_favorited = django_filters.NumberFilter(method='filter_user_in_queryset')
+    is_favorited = django_filters.NumberFilter(
+        method='filter_user_in_queryset')
 
     class Meta:
         model = Recipe

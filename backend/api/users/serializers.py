@@ -48,7 +48,7 @@ class CustomUserSerializer(UserSerializer):
         fields = MetaAllUserFieldsMixin.Meta.fields + ('is_subscribed',)
 
     def get_is_subscribed(self, obj):
-        return Subscription.objects.filter(subscriber=obj).exists()
+        return Subscription.objects.filter(user=obj).exists()
 
 
 class UserSerializerWithRecipesList(CustomUserSerializer):

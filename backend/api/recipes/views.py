@@ -91,7 +91,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
             status=status.HTTP_200_OK,
             as_attachment=True,)
 
-
     @action(['post', 'delete'],
             permission_classes=(permissions.IsAuthenticated,),
             detail=True)
