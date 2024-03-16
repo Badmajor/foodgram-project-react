@@ -24,10 +24,8 @@ class RecipeFilter(django_filters.FilterSet):
         return queryset
 
     def filter_tags(self, queryset, name, value):
-
         tags = self.request.query_params.getlist('tags')
         queryset = queryset.filter(tags__slug__in=tags).distinct()
-        print([item.id for item in queryset])
         return queryset
 
 
