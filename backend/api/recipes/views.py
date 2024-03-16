@@ -1,6 +1,6 @@
 import io
 
-from django.db.models import F, Sum
+from django.db.models import Sum
 from django.http import FileResponse
 from django_filters import rest_framework as filters
 from reportlab.pdfbase import pdfmetrics, ttfonts
@@ -8,12 +8,13 @@ from reportlab.pdfgen import canvas
 from rest_framework import exceptions, mixins, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
+
 from api.recipes.permissions import OwnerAndAdminChange
 from api.recipes.serializers import (IngredientSerializer,
                                      RecipeListForUserSerializer,
                                      RecipeSerializer, TagSerializer)
-from recipes.models import (Ingredient, IngredientRecipe, Recipe, ShoppingCart, Tag,
-                            UsersRecipesFavorite)
+from recipes.models import (Ingredient, IngredientRecipe, Recipe, ShoppingCart,
+                            Tag, UsersRecipesFavorite)
 
 from .filters import IngredientFilter, RecipeFilter
 from .paginators import RecipePaginator
