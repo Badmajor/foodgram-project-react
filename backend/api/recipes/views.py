@@ -63,10 +63,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
-    def update(self, request, *args, **kwargs):
-        kwargs['partial'] = False
-        return super().update(request, *args, **kwargs)
-
     @action(["post", "delete"],
             permission_classes=(permissions.IsAuthenticated,),
             detail=True)

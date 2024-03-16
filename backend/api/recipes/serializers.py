@@ -104,8 +104,8 @@ class RecipeSerializer(serializers.ModelSerializer):
         return representation
 
     def update(self, instance, validated_data):
-        ingredients_data = validated_data.pop('ingredients')
-        tags_data = validated_data.pop('tags')
+        ingredients_data = validated_data.pop('ingredients', False)
+        tags_data = validated_data.pop('tags', False)
         self._add_ingredientrecipe(ingredients_data, instance)
         self._add_tagrecipe(tags_data, instance)
         return super().update(instance, validated_data)
@@ -138,6 +138,8 @@ class RecipeSerializer(serializers.ModelSerializer):
     def _add_ingredientrecipe(
             self, ingredients: list, instance: Recipe
     ) -> None:
+        if not ingredients:
+            raise serializers.ValidationError('ingredients does not be empty')
         created_ingredientrecipe = []
         IngredientRecipe.objects.filter(recipe=instance).delete()
         for ingredient_data in ingredients:
@@ -152,6 +154,8 @@ class RecipeSerializer(serializers.ModelSerializer):
         IngredientRecipe.objects.bulk_create(created_ingredientrecipe)
 
     def _add_tagrecipe(self, tags: list, instance: Recipe) -> None:
+        if not tags:
+            raise serializers.ValidationError('Tags does not be empty')
         instance.tags.clear()
         for tag in tags:
             tag = Tag.objects.get(pk=tag.get('id'))
