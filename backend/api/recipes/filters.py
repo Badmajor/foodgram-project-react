@@ -5,7 +5,8 @@ from recipes.models import Recipe
 
 class RecipeFilter(django_filters.FilterSet):
     author = django_filters.NumberFilter(field_name='author__id')
-    tags = django_filters.CharFilter(field_name='tags__slug')
+    tags = django_filters.CharFilter(
+        method='filter_tags')
     is_in_shopping_cart = django_filters.NumberFilter(
         method='filter_user_in_queryset')
     is_favorited = django_filters.NumberFilter(
@@ -20,4 +21,9 @@ class RecipeFilter(django_filters.FilterSet):
         if value and user.is_authenticated:
             data = {name: user}
             queryset = queryset.filter(**data)
+        return queryset
+
+    def filter_tags(self, queryset, name, value):
+        tags = self.request.query_params.getlist('tags')
+        queryset = queryset.filter(tags__slug__in=tags)
         return queryset
