@@ -9,7 +9,10 @@ SHORT_STR = settings.SIZE_SHORT_STRING
 
 
 class NameFieldStrMethodBaseModel(models.Model):
-    name = models.CharField('Название', max_length=LONG_STR, )
+    name = models.CharField(
+        'Название',
+        max_length=LONG_STR,
+    )
 
     class Meta:
         abstract = True
@@ -26,10 +29,14 @@ class Ingredient(NameFieldStrMethodBaseModel):
         verbose_name = 'Ингредиент'
         verbose_name_plural = 'ингредиенты'
         default_related_name = 'ingredient'
+        constraints = (
+            models.UniqueConstraint(fields=('name', 'measurement_unit'),
+                                    name='ingredient_unique'),
+        )
 
 
 class Tag(NameFieldStrMethodBaseModel):
-    slug = models.CharField(max_length=SHORT_STR)
+    slug = models.CharField(max_length=SHORT_STR, unique=True)
     color = models.CharField('Цвет', max_length=SHORT_STR)
 
     class Meta:

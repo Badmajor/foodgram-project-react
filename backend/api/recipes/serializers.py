@@ -100,6 +100,8 @@ class RecipeSerializer(serializers.ModelSerializer):
         representation['is_favorited'] = user in instance.is_favorited.all()
         representation['is_in_shopping_cart'] = (
                 user in instance.is_in_shopping_cart.all())
+        representation['image'] = instance.image.url
+        print(instance.image.url)
         return representation
 
     def update(self, instance, validated_data):

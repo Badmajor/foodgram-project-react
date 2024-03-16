@@ -148,7 +148,7 @@ DJOSER = {
 }
 
 TAGS_FOR_RECIPES = [
-    {'name': 'Завтрак', 'slug': 'breakfast', 'color': '#0000ff'},
+    {'name': 'Ужин', 'slug': 'dinner', 'color': '#0000ff'},
     {'name': 'Обед', 'slug': 'lunch', 'color': '#cd7f32'},
     {'name': 'Завтрак', 'slug': 'breakfast', 'color': '#61db5c'},
 ]
