@@ -125,9 +125,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             )
         if method == 'DELETE':
             recipe = self.get_object()
-            print('CheckPoint123', recipe.author, user, klass)
             favorite = _get_obj_or_400(klass, user=user, recipe=recipe)
-            print('fdskjfsdfsd', recipe.author, user, klass)
             favorite.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
