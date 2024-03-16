@@ -12,7 +12,7 @@ from api.recipes.permissions import OwnerAndAdminChange
 from api.recipes.serializers import (IngredientSerializer,
                                      RecipeListForUserSerializer,
                                      RecipeSerializer, TagSerializer)
-from recipes.models import (Ingredient, Recipe, ShoppingCart, Tag,
+from recipes.models import (Ingredient, IngredientRecipe, Recipe, ShoppingCart, Tag,
                             UsersRecipesFavorite)
 
 from .filters import IngredientFilter, RecipeFilter
@@ -31,7 +31,9 @@ def create_pdf(data_list: list[str]):
     file.setFont("DejaVu", 15)
     y = 750
     for item in data_list:
-        row = f'- {item["name"]} - {item["amount"]} {item["unit"]}'
+        name = item["ingredient__name"]
+        unit = item["ingredient__measurement_unit"]
+        row = f'- {name} - {item["amount"]} {unit}'
         file.drawString(100, y, row)
         y -= 30
     file.showPage()
@@ -76,19 +78,17 @@ class RecipeViewSet(viewsets.ModelViewSet):
             permission_classes=(permissions.IsAuthenticated,),
             detail=False)
     def download_shopping_cart(self, request, *args, **kwargs):
-        ingredients = ShoppingCart.objects.filter(
-            user=request.user
-        ).values(
-            name=F('recipe__ingredients__name'),
-            unit=F('recipe__ingredients__measurement_unit')
-        ).annotate(amount=Sum(
-            'recipe__ingredients__ingredientrecipe__amount'))
-        file = create_pdf(ingredients)
+        recipes_in_shopping_cart = IngredientRecipe.objects.filter(
+            recipe__is_in_shopping_cart=request.user
+        ).values('ingredient__name',
+                 'ingredient__measurement_unit',
+                 ).annotate(amount=Sum('amount')).order_by('ingredient__name')
+        file = create_pdf(recipes_in_shopping_cart)
         return FileResponse(
             file,
             filename='shopping_cart.pdf',
             status=status.HTTP_200_OK,
-            as_attachment=True,)
+            as_attachment=True, )
 
     @action(['post', 'delete'],
             permission_classes=(permissions.IsAuthenticated,),
