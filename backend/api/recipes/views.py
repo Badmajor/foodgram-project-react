@@ -8,7 +8,6 @@ from reportlab.pdfgen import canvas
 from rest_framework import exceptions, mixins, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-
 from api.recipes.permissions import OwnerAndAdminChange
 from api.recipes.serializers import (IngredientSerializer,
                                      RecipeListForUserSerializer,
@@ -16,7 +15,7 @@ from api.recipes.serializers import (IngredientSerializer,
 from recipes.models import (Ingredient, Recipe, ShoppingCart, Tag,
                             UsersRecipesFavorite)
 
-from .filters import RecipeFilter
+from .filters import IngredientFilter, RecipeFilter
 from .paginators import RecipePaginator
 
 
@@ -139,7 +138,7 @@ class IngredientViewSet(mixins.RetrieveModelMixin,
     queryset = Ingredient.objects.order_by('name')
     serializer_class = IngredientSerializer
     filter_backends = (filters.DjangoFilterBackend,)
-    filterset_fields = ('name',)
+    filterset_class = IngredientFilter
     pagination_class = None
 
 
