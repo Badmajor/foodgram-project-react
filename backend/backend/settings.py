@@ -15,7 +15,7 @@ DEBUG = os.getenv('DEBUG', False) == 'True'
 
 TEST_BASE = os.getenv('TEST_BASE', False) == 'True'
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS').split(',')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -155,3 +155,7 @@ TAGS_FOR_RECIPES = [
 
 SIZE_LONG_STRING = 128
 SIZE_SHORT_STRING = 16
+
+CSRF_TRUSTED_ORIGINS = os.getenv(
+    'CSRF_TRUSTED_ORIGINS', 'http://127.0.0.1:8000'
+).split(',')
