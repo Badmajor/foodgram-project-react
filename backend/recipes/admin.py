@@ -11,6 +11,7 @@ class RecipeAdmin(admin.ModelAdmin):
     )
     list_filter = ('name', 'author', 'tags',)
 
+    @admin.display(description='Ингредиенты')
     def display_ingredients(self, obj):
         ingredients_list = []
         for ingr in obj.ingredientrecipe_set.all():
@@ -20,9 +21,11 @@ class RecipeAdmin(admin.ModelAdmin):
             )
         return ', '.join(ingredients_list)
 
+    @admin.display(description='Тэги')
     def display_tags(self, obj):
         return ', '.join(ingredient.name for ingredient in obj.tags.all())
 
+    @admin.display(description='Кол-во добавлений')
     def display_count_favorites(self, obj):
         return obj.is_favorited.all().count()
 
