@@ -133,3 +133,5 @@ dmypy.json
 
 # images
 backend/media
+
+fonts/
