@@ -36,10 +36,9 @@ python manage.py runserver
 ## Импорт данных ингредиентов из cvs или json в БД
 
 ```bash
-# Команда add_ingredients_into_db 
-# добавляет ингредиенты в базу данных. Файл должен находиться 
-# в каталоге data и называться ingredients
-# принмает разрещения .json и .csv
+# Команда add_ingredients
+# добавляет ингредиенты в базу данных. Файл .csv должен находиться 
+# в каталоге data под называнием ingredients.csv
 python manage.py add_ingredients 
 ```
 
