@@ -6,8 +6,6 @@ from .models import Subscription
 
 User = get_user_model()
 
-admin.site.unregister(models.User)
-
 
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):

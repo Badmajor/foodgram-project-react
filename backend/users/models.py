@@ -1,18 +1,24 @@
-from django.contrib.auth import get_user_model
+from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.db import models
 
-User = get_user_model()
+
+class CustomUser(AbstractUser):
+    email = models.EmailField(
+        'Адрес электронной почты',
+        unique=True
+    )
+
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = ["username"]
 
 
 class Subscription(models.Model):
     subscriber = models.ForeignKey(
-        'подписчик',
-        User, on_delete=models.CASCADE, related_name='subscriber'
+        CustomUser, on_delete=models.CASCADE, related_name='subscriber'
     )
     user = models.ForeignKey(
-        'Пользователь',
-        User, on_delete=models.CASCADE, related_name='user'
+        CustomUser, on_delete=models.CASCADE, related_name='user'
     )
 
     class Meta:
@@ -27,7 +33,7 @@ class Subscription(models.Model):
         )
 
     def __str__(self):
-        return f'{self.subscriber} to {self.user}'
+        return f'{self.subscriber} is subscribed to {self.user}'
 
     def clean(self):
         if self.user == self.subscriber:
