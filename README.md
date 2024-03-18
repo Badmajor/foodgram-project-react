@@ -1,7 +1,7 @@
 
 site: https://foodgram.elmobil.ru/
 
-login: admin
+login: admin@admin.ru
 password: admin
 
 
