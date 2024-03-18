@@ -24,9 +24,13 @@ class Command(BaseCommand):
                             name=row[0], measurement_unit=row[1])
                         count += 1
                     except IntegrityError:
-                        self.stdout.write(f'Ingredient {", ".join(row)} - already exists')
-                    except IndexError as ex:
-                        logging.error(f'Not correct ingredient. Line:{line_num + 1}')
+                        self.stdout.write(
+                            f'Ingredient {", ".join(row)} - already exists'
+                        )
+                    except IndexError:
+                        logging.error(
+                            f'Not correct ingredient. Line:{line_num + 1}'
+                        )
                         return
         except FileNotFoundError as ex:
             self.stdout.write(str(ex))
