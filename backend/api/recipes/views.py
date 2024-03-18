@@ -1,10 +1,6 @@
-import io
-
 from django.db.models import Sum
 from django.http import FileResponse
 from django_filters import rest_framework as filters
-from reportlab.pdfbase import pdfmetrics, ttfonts
-from reportlab.pdfgen import canvas
 from rest_framework import exceptions, mixins, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -18,29 +14,7 @@ from recipes.models import (Ingredient, IngredientRecipe, Recipe, ShoppingCart,
 
 from .filters import IngredientFilter, RecipeFilter
 from .paginators import RecipePaginator
-
-
-def create_pdf(data_list: list[str]):
-    buffer = io.BytesIO()
-    file = canvas.Canvas(buffer)
-    pdfmetrics.registerFont(
-        ttfonts.TTFont(
-            'DejaVu',
-            'fonts/DejaVuSerifCondensed.ttf',
-        )
-    )
-    file.setFont("DejaVu", 15)
-    y = 750
-    for item in data_list:
-        name = item["ingredient__name"]
-        unit = item["ingredient__measurement_unit"]
-        row = f'- {name} - {item["amount"]} {unit}'
-        file.drawString(100, y, row)
-        y -= 30
-    file.showPage()
-    file.save()
-    buffer.seek(0)
-    return buffer
+from .servises import create_pdf
 
 
 def _get_obj_or_400(klass, **kwargs):

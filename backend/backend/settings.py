@@ -153,9 +153,6 @@ TAGS_FOR_RECIPES = [
     {'name': 'Завтрак', 'slug': 'breakfast', 'color': '#61db5c'},
 ]
 
-SIZE_LONG_STRING = 128
-SIZE_SHORT_STRING = 16
-
 CSRF_TRUSTED_ORIGINS = os.getenv(
     'CSRF_TRUSTED_ORIGINS', 'http://127.0.0.1:8000'
 ).split(',')
