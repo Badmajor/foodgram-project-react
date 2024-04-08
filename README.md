@@ -22,6 +22,8 @@ pip install -r requirements.txt
 # Выполните миграции
 python manage.py migrate
 
+# Переименуйте файл infra/.env.example в .env и разместите его в каталоге backend, рядом с файлом requirements.txt
+
 # Запустите сервер
 python manage.py runserver
 ```
